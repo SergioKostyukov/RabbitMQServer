@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    hostname: "rmq"
+    ports:
+      - "8080:15672"
+      - "5672:5672"
+    container_name: "my-rabbit-server"
+    networks:
+      - mynetwork
+
+  redis:
+    image: "redis:latest"
+    ports:
+      - "6379:6379"
+    container_name: "my-redis"
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:

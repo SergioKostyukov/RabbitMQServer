@@ -1,0 +1,11 @@
+.vs/
+bin/
+obj/
+Properties/
+appsettings*.json
+
+consumer_log.txt
+producer_log.txt
+local.json
+
+Startup.cs
