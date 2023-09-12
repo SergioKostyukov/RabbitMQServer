@@ -64,7 +64,7 @@ namespace RabbitMQServer.Services
                         {
                             try
                             {
-                                Task.Delay(TimeSpan.FromSeconds(2));
+                                //Task.Delay(TimeSpan.FromSeconds(2));
 
                                 var json = JsonConvert.SerializeObject(message);
                                 var body = Encoding.UTF8.GetBytes(json);
@@ -127,6 +127,7 @@ namespace RabbitMQServer.Services
                 Console.WriteLine($"Error while logging: {ex.Message}");
             }
         }
+
         private static void ClearFileContent(string filePath)
         {
             try

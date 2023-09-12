@@ -3,9 +3,11 @@ bin/
 obj/
 Properties/
 appsettings*.json
+RabbitMQServer.sln
 
 consumer_log.txt
 producer_log.txt
 local.json
 
 Startup.cs
+Version 1.0/

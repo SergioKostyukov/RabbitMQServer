@@ -4,6 +4,15 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Microsoft.Extensions.Configuration;
 
+/*
+ Переробити README file
+ Додати .sln до .gitignore
+ Розібратись що за трабл з Consumer-ом
+ 
+ Додати Redis
+ Додати сервіс авторизації
+ */
+
 namespace RabbitMQServer.Services
 {
     public class ConsumerService
