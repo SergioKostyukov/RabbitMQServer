@@ -4,13 +4,14 @@ using RabbitMQ.Client;
 using Microsoft.Extensions.Configuration;
 using StackExchange.Redis;
 using Microsoft.AspNetCore.Connections;
+using RabbitMQServer.Models;
 
 namespace RabbitMQServer.Services
 {
     public class ProducerService
     {
-        private static string LogFilePath = "./producer_log.txt";
-        private static string ConfFilePath = "./local.json";
+        private static string LogFilePath = "./Data/producer_log.txt";
+        private static string ConfFilePath = "./Data/local.json";
         private static IConfiguration Configuration { get; set; }
 
         public void SendMessage()
@@ -30,10 +31,6 @@ namespace RabbitMQServer.Services
                     Password = Configuration["RabbitMQ:Password"],
                     ClientProvidedName = "Rabbit Producer"
                 };
-
-
-                //RedisConnection();
-
 
                 ClearFileContent(LogFilePath);
 
@@ -84,21 +81,6 @@ namespace RabbitMQServer.Services
             {
                 LogError($"An error occurred: {ex.Message}");
             }
-        }
-
-        private static void RedisConnection()
-        {
-            string redisConnectionString = "localhost:6379";
-
-            ConnectionMultiplexer redis = ConnectionMultiplexer.Connect(redisConnectionString);
-            IDatabase db = redis.GetDatabase();
-
-            // Збереження значення в Redis
-            db.StringSet("mykey", "Hello, Redis!");
-
-            // Отримання значення з Redis
-            string value = db.StringGet("mykey");
-            Console.WriteLine(value);
         }
 
         private static void LogInfo(string message)

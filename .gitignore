@@ -5,9 +5,6 @@ Properties/
 appsettings*.json
 RabbitMQServer.sln
 
-consumer_log.txt
-producer_log.txt
-local.json
+Data/
 
 Startup.cs
-Version 1.0/

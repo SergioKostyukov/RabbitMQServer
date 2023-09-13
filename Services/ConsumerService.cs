@@ -6,19 +6,19 @@ using Microsoft.Extensions.Configuration;
 
 /*
  Переробити README file
- Додати .sln до .gitignore
  Розібратись що за трабл з Consumer-ом
+ Add comments
  
- Додати Redis
- Додати сервіс авторизації
+ Add Redis
+ Add Authorization
  */
 
 namespace RabbitMQServer.Services
 {
     public class ConsumerService
     {
-        private static string LogFilePath = "./consumer_log.txt";
-        private static string ConfFilePath = "./local.json";
+        private static string LogFilePath = "./Data/consumer_log.txt";
+        private static string ConfFilePath = "./Data/local.json";
         private static IConfiguration Configuration { get; set; }
 
         public void ReceiveMessage()

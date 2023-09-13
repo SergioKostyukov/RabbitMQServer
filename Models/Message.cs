@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace RabbitMQServer
+namespace RabbitMQServer.Models
 {
     public class Message
     {

@@ -22,5 +22,4 @@ namespace RabbitMQServer.Controllers
             return Ok("Message received successfully");
         }
     }
-
 }
