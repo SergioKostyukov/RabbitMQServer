@@ -10,9 +10,15 @@ namespace RabbitMQServer.Services
 {
     public class ProducerService
     {
-        private static string LogFilePath = "./Data/producer_log.txt";
-        private static string ConfFilePath = "./Data/local.json";
+        private readonly static string LogFilePath = "./Data/producer_log.txt";
+        private readonly static string ConfFilePath = "./Data/local.json";
         private static IConfiguration Configuration { get; set; }
+        private readonly Logger logger;
+
+        public ProducerService()
+        {
+            logger = new Logger(LogFilePath);
+        }
 
         public void SendMessage()
         {
@@ -32,15 +38,15 @@ namespace RabbitMQServer.Services
                     ClientProvidedName = "Rabbit Producer"
                 };
 
-                ClearFileContent(LogFilePath);
+                logger.ClearFileContent();
 
                 using (var connection = factory.CreateConnection())
                 {
-                    LogInfo("Connection established");
+                    logger.LogInfo("Connection established");
 
                     using (var channel = connection.CreateModel())
                     {
-                        LogInfo("Channel created");
+                        logger.LogInfo("Channel created");
 
                         string exchangeName = "Exchange";
                         string routingKey = "routing-key";
@@ -67,11 +73,11 @@ namespace RabbitMQServer.Services
                                 var body = Encoding.UTF8.GetBytes(json);
 
                                 channel.BasicPublish(exchangeName, routingKey, basicProperties: null, body: body);
-                                LogInfo($"Sent: {json}");
+                                logger.LogInfo($"Sent: {json}");
                             }
                             catch (Exception ex)
                             {
-                                LogError($"Error sending message: {ex.Message}");
+                                logger.LogError($"Error sending message: {ex.Message}");
                             }
                         }
                     }
@@ -79,46 +85,7 @@ namespace RabbitMQServer.Services
             }
             catch (Exception ex)
             {
-                LogError($"An error occurred: {ex.Message}");
-            }
-        }
-
-        private static void LogInfo(string message)
-        {
-            LogMessage($"[INFO] {message}");
-        }
-
-        private static void LogError(string message)
-        {
-            LogMessage($"[ERROR] {message}");
-        }
-
-        private static void LogMessage(string message)
-        {
-            Console.WriteLine(message);
-
-            try
-            {
-                using (StreamWriter writer = File.AppendText(LogFilePath))
-                {
-                    writer.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - {message}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error while logging: {ex.Message}");
-            }
-        }
-
-        private static void ClearFileContent(string filePath)
-        {
-            try
-            {
-                File.WriteAllText(filePath, string.Empty);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error clearing file content: {ex.Message}");
+                logger.LogError($"An error occurred: {ex.Message}");
             }
         }
     }

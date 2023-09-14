@@ -4,22 +4,18 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Microsoft.Extensions.Configuration;
 
-/*
- Переробити README file
- Розібратись що за трабл з Consumer-ом
- Add comments
- 
- Add Redis
- Add Authorization
- */
-
 namespace RabbitMQServer.Services
 {
     public class ConsumerService
     {
-        private static string LogFilePath = "./Data/consumer_log.txt";
-        private static string ConfFilePath = "./Data/local.json";
+        private readonly static string LogFilePath = "./Data/consumer_log.txt";
+        private readonly static string ConfFilePath = "./Data/local.json";
         private static IConfiguration Configuration { get; set; }
+        private readonly Logger logger;
+        public ConsumerService()
+        {
+            logger = new Logger(LogFilePath);
+        }
 
         public void ReceiveMessage()
         {
@@ -39,15 +35,15 @@ namespace RabbitMQServer.Services
                     ClientProvidedName = "Rabbit Consumer"
                 };
 
-                ClearFileContent(LogFilePath);
+                logger.ClearFileContent();
 
                 using (var connection = factory.CreateConnection())
                 {
-                    LogInfo("Connection established");
+                    logger.LogInfo("Connection established");
 
                     using (var channel = connection.CreateModel())
                     {
-                        LogInfo("Channel created");
+                        logger.LogInfo("Channel created");
 
                         string exchangeName = "Exchange";
                         string routingKey = "routing-key";
@@ -74,7 +70,7 @@ namespace RabbitMQServer.Services
             }
             catch (Exception ex)
             {
-                LogError($"An error occurred: {ex.Message}");
+                logger.LogError($"An error occurred: {ex.Message}");
             }
         }
 
@@ -86,52 +82,13 @@ namespace RabbitMQServer.Services
                 var json = Encoding.UTF8.GetString(body);
                 // var message = JsonConvert.DeserializeObject<Message>(json);
 
-                LogInfo($"Received: {json}");
+                logger.LogInfo($"Received: {json}");
 
                 channel.BasicAck(args.DeliveryTag, false);
             }
             catch (Exception ex)
             {
-                LogError($"Error processing message: {ex.Message}");
-            }
-        }
-
-        private static void LogInfo(string message)
-        {
-            LogMessage($"[INFO] {message}");
-        }
-
-        private static void LogError(string message)
-        {
-            LogMessage($"[ERROR] {message}");
-        }
-
-        private static void LogMessage(string message)
-        {
-            Console.WriteLine(message);
-
-            try
-            {
-                using (StreamWriter writer = File.AppendText(LogFilePath))
-                {
-                    writer.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - {message}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error while logging: {ex.Message}");
-            }
-        }
-
-        static void ClearFileContent(string filePath)
-        {
-            try
-            {
-                File.WriteAllText(filePath, string.Empty);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error clearing file content: {ex.Message}");
+                logger.LogError($"Error processing message: {ex.Message}");
             }
         }
     }

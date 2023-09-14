@@ -8,41 +8,56 @@ using RabbitMQServer.Models;
 using System.Threading.Channels;
 using System.Text.RegularExpressions;
 
+/*
+    Переробити README file
+    Розібратись що за трабл з Consumer-ом
+    Add comments
+ 
+    Add Redis
+    Add Authorization
+ */
+
 namespace RabbitMQServer.Services
 {
     public class AuthService
     {
-        //private static string ConfFilePath = "./Data/local.json";
-        private static string LogFilePath = "./Data/auth_log.txt";
-        private static string UserData = "./Data/user_data.txt";
-        //private static IConfiguration Configuration { get; set; }
+        //private readonly static string ConfFilePath = "./Data/local.json";
+        private readonly string LogFilePath = "./Data/auth_log.txt";
+        private readonly string UserDataFilePath = "./Data/user_data.txt";
+        private readonly Logger logger;
+
+        public AuthService()
+        {
+            logger = new Logger(LogFilePath);
+        }
 
         public bool AuthUser(User user)
         {
-            //RedisConnection();
-
             try
             {
                 if (!IsEmailValid(user.Email))
                 {
-                    LogInfo($"Invalid Email format: {user.Email}");
+                    logger.LogInfo($"Invalid Email format: {user.Email}");
                     return false;
-                }
+                } // add username and password validation
 
+                // Generate token for the user's password
+
+
+                // Saving user data to "db"
                 user.Email = user.Email.ToLower();
                 string json = JsonConvert.SerializeObject(user);
-
-                using (StreamWriter writer = new StreamWriter(UserData, true))
+                using (StreamWriter writer = new StreamWriter(UserDataFilePath, true))
                 {
                     writer.WriteLine($"{json}");
                 }
 
-                LogInfo($"Received: {json}");
+                logger.LogInfo($"Received: {json}");
                 return true;
             }
             catch (Exception ex)
             {
-                LogError($"Error processing message: {ex.Message}");
+                logger.LogError($"Error processing message: {ex.Message}");
                 return false;
             }
         }
@@ -52,28 +67,19 @@ namespace RabbitMQServer.Services
             try
             {
                 user.Email = user.Email.ToLower();
-                string json = JsonConvert.SerializeObject(user);
 
-                string[] jsonLines;
-                using (var streamReader = new StreamReader(UserData))
-                {
-                    jsonLines = streamReader.ReadToEnd().Split("\n");
-                }
-
-                User result_user = null;
+                string[] jsonLines = File.ReadAllLines(UserDataFilePath);
 
                 foreach (string line in jsonLines)
                 {
-                    
                     User storedUser = JsonConvert.DeserializeObject<User>(line);
-                    Console.WriteLine($"CurrUser - {storedUser.Email}");
 
-                    if (storedUser.Email == user.Email)
+                    if (storedUser != null && storedUser.Email == user.Email)
                     {
-                        if(storedUser.Password == user.Password)
+                        if (VerifyPassword(storedUser.Password, user.Password))
                         {
-                            result_user = storedUser;
-                            break;
+                            logger.LogInfo($"Login: {JsonConvert.SerializeObject(user)}");
+                            return true;
                         }
                         else
                         {
@@ -82,54 +88,30 @@ namespace RabbitMQServer.Services
                     }
                 }
 
-                if(result_user != null)
-                {
-                    LogInfo($"Login: {json}");
-                    return true;
-                }
-
                 throw new Exception("Doesn`t find");
             }
             catch (Exception ex)
             {
-                LogError($"Error processing message: {ex.Message}");
+                logger.LogError($"Error processing message: {ex.Message}");
                 return false;
             }
         }
 
+        private bool VerifyPassword(string storedHash, string inputPassword)
+        {
+            if(storedHash == inputPassword)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         private bool IsEmailValid(string email)
         {
-            // Перевірка валідності пошти за допомогою регулярного виразу
             string emailPattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
             return Regex.IsMatch(email, emailPattern);
-        }
-
-        private static void LogInfo(string message)
-        {
-            LogMessage($"[INFO] {message}");
-        }
-
-        private static void LogError(string message)
-        {
-            LogMessage($"[ERROR] {message}");
-        }
-
-        private static void LogMessage(string message)
-        {
-            Console.WriteLine(message);
-
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(LogFilePath, true))
-                {
-                    writer.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - {message}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error while logging: {ex.Message}");
-            }
-        }
+        }    
 
         /*private static void RedisConnection()
         {
@@ -144,15 +126,6 @@ namespace RabbitMQServer.Services
             // Отримання значення з Redis
             string value = db.StringGet("mykey");
             Console.WriteLine(value);
-        }
-
-        public bool Authenticate(string username, string password)
-        {
-            // Отримати пароль з Redis за ключем, який відповідає імені користувача
-            string storedPassword = _redisDatabase.StringGet(username);
-
-            // Порівняти отриманий пароль із введеним паролем
-            return password == storedPassword;
         }*/
     }
 }
