@@ -1,5 +1,6 @@
 ﻿namespace RabbitMQServer.Services
 {
+    // This class implements recording of logs to the corresponding files
     public class Logger
     {
         private string LogFilePath { get; }
@@ -8,6 +9,7 @@
         {
             LogFilePath = logFilePath;
         }
+
         public void LogInfo(string message)
         {
             LogMessage($"[INFO] {message}");
@@ -24,7 +26,7 @@
 
             try
             {
-                using (StreamWriter writer = new StreamWriter(LogFilePath, true))
+                using (StreamWriter writer = new StreamWriter(LogFilePath, true)) // writes a message to the end of "LogFilePath" file (by using true parameter)
                 {
                     writer.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - {message}");
                 }

@@ -7,6 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="Data\prod.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Data\prod.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="RabbitMQ.Client" Version="6.5.0" />
     <PackageReference Include="StackExchange.Redis" Version="2.6.122" />

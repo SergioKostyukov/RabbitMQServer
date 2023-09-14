@@ -1,27 +1,13 @@
-﻿using System.Text;
-using Newtonsoft.Json;
-using RabbitMQ.Client;
-using Microsoft.Extensions.Configuration;
+﻿using Newtonsoft.Json;
 using StackExchange.Redis;
-using Microsoft.AspNetCore.Connections;
 using RabbitMQServer.Models;
-using System.Threading.Channels;
 using System.Text.RegularExpressions;
-
-/*
-    Переробити README file
-    Розібратись що за трабл з Consumer-ом
-    Add comments
- 
-    Add Redis
-    Add Authorization
- */
 
 namespace RabbitMQServer.Services
 {
     public class AuthService
     {
-        //private readonly static string ConfFilePath = "./Data/local.json";
+        // private readonly static string ConfFilePath = "./Data/local.json";
         private readonly string LogFilePath = "./Data/auth_log.txt";
         private readonly string UserDataFilePath = "./Data/user_data.txt";
         private readonly Logger logger;
@@ -35,7 +21,7 @@ namespace RabbitMQServer.Services
         {
             try
             {
-                if (!IsEmailValid(user.Email))
+                if (user.Email != null && !IsEmailValid(user.Email))
                 {
                     logger.LogInfo($"Invalid Email format: {user.Email}");
                     return false;
@@ -47,7 +33,7 @@ namespace RabbitMQServer.Services
                 // Saving user data to "db"
                 user.Email = user.Email.ToLower();
                 string json = JsonConvert.SerializeObject(user);
-                using (StreamWriter writer = new StreamWriter(UserDataFilePath, true))
+                using (var writer = new StreamWriter(UserDataFilePath, true))
                 {
                     writer.WriteLine($"{json}");
                 }
@@ -67,9 +53,9 @@ namespace RabbitMQServer.Services
             try
             {
                 user.Email = user.Email.ToLower();
-
                 string[] jsonLines = File.ReadAllLines(UserDataFilePath);
 
+                // compare users db data with user request data
                 foreach (string line in jsonLines)
                 {
                     User storedUser = JsonConvert.DeserializeObject<User>(line);
@@ -97,7 +83,8 @@ namespace RabbitMQServer.Services
             }
         }
 
-        private bool VerifyPassword(string storedHash, string inputPassword)
+        // temporary password verify method
+        private static bool VerifyPassword(string storedHash, string inputPassword)
         {
             if(storedHash == inputPassword)
             {
@@ -107,7 +94,7 @@ namespace RabbitMQServer.Services
             return false;
         }
 
-        private bool IsEmailValid(string email)
+        private static bool IsEmailValid(string email)
         {
             string emailPattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
             return Regex.IsMatch(email, emailPattern);

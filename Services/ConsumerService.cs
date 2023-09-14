@@ -1,8 +1,8 @@
 ﻿using System.Text;
-using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using Microsoft.Extensions.Configuration;
+
+// Fix an error in the Consumer 
 
 namespace RabbitMQServer.Services
 {

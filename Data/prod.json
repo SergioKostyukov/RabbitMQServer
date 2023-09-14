@@ -1,0 +1,8 @@
+﻿{
+  "RabbitMQ": {
+    "HostName": "",
+    "Port": ,
+    "UserName": "",
+    "Password": ""
+  }
+}

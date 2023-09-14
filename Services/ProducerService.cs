@@ -1,9 +1,6 @@
 ﻿using System.Text;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
-using Microsoft.Extensions.Configuration;
-using StackExchange.Redis;
-using Microsoft.AspNetCore.Connections;
 using RabbitMQServer.Models;
 
 namespace RabbitMQServer.Services

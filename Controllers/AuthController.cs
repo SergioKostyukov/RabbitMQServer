@@ -40,5 +40,7 @@ namespace RabbitMQServer.Controllers
                 return BadRequest("User login failed");
             }
         }
+
+        // delete user
     }
 }

@@ -2,8 +2,6 @@ using RabbitMQServer.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//builder.Services.AddAuthentification();
-
 builder.Services.AddControllers();
 builder.Services.AddScoped<ProducerService>();
 builder.Services.AddScoped<ConsumerService>();

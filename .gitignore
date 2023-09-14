@@ -5,6 +5,7 @@ Properties/
 appsettings*.json
 RabbitMQServer.sln
 
-Data/
+Data/*
+!Data/prod.json
 
 Startup.cs
