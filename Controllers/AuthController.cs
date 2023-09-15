@@ -29,9 +29,25 @@ namespace RabbitMQServer.Controllers
         }
 
         [HttpPost("Login")]
-        public IActionResult Login(UserDTO user)
+        public IActionResult Login(UserDto user)
         {
-            if (_authService.LoginUser(user))
+            if (!_authService.LoginUser(user))
+            {
+                return BadRequest("User login failed"); 
+            }
+
+            if (!_authService.CreateToken(user))
+            {
+                return BadRequest("Token creation error");
+            }
+
+            return Ok("User login successfull");
+        }
+
+        [HttpPost("Delete")]
+        public IActionResult Delete(UserDto user)
+        {
+            if (true)
             {
                 return Ok("User login successfull");
             }
@@ -40,7 +56,5 @@ namespace RabbitMQServer.Controllers
                 return BadRequest("User login failed");
             }
         }
-
-        // delete user
     }
 }

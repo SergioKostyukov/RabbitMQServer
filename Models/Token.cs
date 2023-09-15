@@ -1,42 +1,42 @@
-﻿using System.Security.Cryptography;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace RabbitMQServer.Models
 {
     public class Token
     {
-        private const int TokenLength = 32;
-
-        public static string GenerateToken()
+        private static readonly IConfiguration? _configuration;
+        static Token()
         {
-            byte[] randomBytes = new byte[TokenLength];
-            using (var rngCryptoServiceProvider = new RNGCryptoServiceProvider())
-            {
-                rngCryptoServiceProvider.GetBytes(randomBytes);
-            }
-            return Convert.ToBase64String(randomBytes);
+            _configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json")
+                .Build();
         }
 
-        public static bool VerifyToken(string tokenToVerify, string storedToken)
+        public static string GenerateJWTToken(UserDto user)
         {
-            byte[] tokenBytes = Convert.FromBase64String(tokenToVerify);
-            byte[] storedTokenBytes = Convert.FromBase64String(storedToken);
-
-            if (tokenBytes.Length != TokenLength || storedTokenBytes.Length != TokenLength)
+            var claims = new List<Claim>
             {
-                return false;
-            }
+                new Claim(ClaimTypes.Email, user.Email)
+            };
 
-            for (int i = 0; i < TokenLength; i++)
-            {
-                if (tokenBytes[i] != storedTokenBytes[i])
-                {
-                    return false;
-                }
-            }
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+                _configuration.GetSection("AppSettings:Token").Value!));
 
-            return true;
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+
+            var token = new JwtSecurityToken(
+                    claims: claims,
+                    expires: DateTime.Now.AddDays(1),
+                    signingCredentials: creds
+                );
+
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+
+            return jwt;
         }
     }
-
-
 }

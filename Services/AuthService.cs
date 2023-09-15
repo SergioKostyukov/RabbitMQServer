@@ -21,38 +21,39 @@ namespace RabbitMQServer.Services
         {
             try
             {
+                // user data validation
                 if (user.Email != null && !IsEmailValid(user.Email))
                 {
                     logger.LogInfo($"Invalid Email format: {user.Email}");
                     return false;
-                } // add username and password validation
+                } // + username and password validation
 
-                // Generate token for the user's password
-
+                // make user password hash
+                user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
 
                 // Saving user data to "db"
                 user.Email = user.Email.ToLower();
                 string json = JsonConvert.SerializeObject(user);
                 using (var writer = new StreamWriter(UserDataFilePath, true))
                 {
-                    writer.WriteLine($"{json}");
+                    writer.WriteLine(json);
                 }
 
-                logger.LogInfo($"Received: {json}");
+                logger.LogInfo($"Authorized: {json}");
                 return true;
             }
             catch (Exception ex)
             {
-                logger.LogError($"Error processing message: {ex.Message}");
+                logger.LogError($"Autherization error: {ex.Message}");
                 return false;
             }
         }
         
-        public bool LoginUser(UserDTO user)
+        public bool LoginUser(UserDto request)
         {
             try
             {
-                user.Email = user.Email.ToLower();
+                request.Email = request.Email.ToLower();
                 string[] jsonLines = File.ReadAllLines(UserDataFilePath);
 
                 // compare users db data with user request data
@@ -60,38 +61,38 @@ namespace RabbitMQServer.Services
                 {
                     User storedUser = JsonConvert.DeserializeObject<User>(line);
 
-                    if (storedUser != null && storedUser.Email == user.Email)
+                    if (storedUser != null && storedUser.Email == request.Email)
                     {
-                        if (VerifyPassword(storedUser.Password, user.Password))
+                        if (BCrypt.Net.BCrypt.Verify(request.Password, storedUser.Password))
                         {
-                            logger.LogInfo($"Login: {JsonConvert.SerializeObject(user)}");
+                            logger.LogInfo($"Login: {JsonConvert.SerializeObject(request)}");
                             return true;
                         }
                         else
                         {
-                            throw new Exception("Invalid password");
+                            throw new Exception("Wrong password");
                         }
                     }
                 }
 
-                throw new Exception("Doesn`t find");
+                throw new Exception("User not find");
             }
             catch (Exception ex)
             {
-                logger.LogError($"Error processing message: {ex.Message}");
+                logger.LogError($"Login error: {ex.Message}");
                 return false;
             }
         }
 
-        // temporary password verify method
-        private static bool VerifyPassword(string storedHash, string inputPassword)
+        public bool CreateToken(UserDto user)
         {
-            if(storedHash == inputPassword)
-            {
-                return true;
-            }
+            // Generate token for the user's password
+            string token = Token.GenerateJWTToken(user);
 
-            return false;
+            // Saving user data to Redis
+            RedisConnection(user.Email, token);
+
+            return true;
         }
 
         private static bool IsEmailValid(string email)
@@ -100,19 +101,18 @@ namespace RabbitMQServer.Services
             return Regex.IsMatch(email, emailPattern);
         }    
 
-        /*private static void RedisConnection()
+        private static void RedisConnection(string email, string key)
         {
             string redisConnectionString = "localhost:6379";
 
             ConnectionMultiplexer redis = ConnectionMultiplexer.Connect(redisConnectionString);
             IDatabase db = redis.GetDatabase();
 
-            // Збереження значення в Redis
-            db.StringSet("mykey", "Hello, Redis!");
+            db.StringSet(email, key);
 
-            // Отримання значення з Redis
-            string value = db.StringGet("mykey");
+            // Correctness check
+            string? value = db.StringGet(email);
             Console.WriteLine(value);
-        }*/
+        }
     }
 }
