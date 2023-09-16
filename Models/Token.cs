@@ -7,7 +7,7 @@ namespace RabbitMQServer.Models
 {
     public class Token
     {
-        private static readonly IConfiguration? _configuration;
+        private readonly static IConfiguration? _configuration;
         static Token()
         {
             _configuration = new ConfigurationBuilder()
@@ -24,7 +24,7 @@ namespace RabbitMQServer.Models
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-                _configuration.GetSection("AppSettings:Token").Value!));
+                _configuration.GetSection("AppSettings:").Value!));
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
 

@@ -15,6 +15,7 @@ namespace RabbitMQServer.Services
         public AuthService()
         {
             logger = new Logger(LogFilePath);
+            logger.ClearFileContent();
         }
 
         public bool AuthUser(User user)
