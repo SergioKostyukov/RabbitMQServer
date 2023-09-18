@@ -4,11 +4,12 @@ using RabbitMQServer.Models;
 
 namespace RabbitMQServer.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[action]")]
     [ApiController]
     public class AuthController : ControllerBase
     {
         private readonly AuthService _authService;
+        
 
         public AuthController(AuthService authService)
         {
@@ -16,7 +17,7 @@ namespace RabbitMQServer.Controllers
         }
 
         [HttpPost("Authorization")]
-        public IActionResult Authorization(User user)
+        public IActionResult Authorization(Users user)
         {
             if (_authService.AuthUser(user))
             {
@@ -31,17 +32,15 @@ namespace RabbitMQServer.Controllers
         [HttpPost("Login")]
         public IActionResult Login(UserDto user)
         {
-            if (!_authService.LoginUser(user))
+            var userToken = _authService.LoginUser(user);
+            if (userToken != null)
             {
-                return BadRequest("User login failed"); 
+                return Ok($"User login successfull:\n{userToken}");
             }
-
-            if (!_authService.CreateToken(user))
+            else
             {
-                return BadRequest("Token creation error");
+                return BadRequest("User login failed");
             }
-
-            return Ok("User login successfull");
         }
 
         [HttpPost("Delete")]

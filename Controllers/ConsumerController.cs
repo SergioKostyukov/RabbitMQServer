@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using RabbitMQServer.Services;
 
 namespace RabbitMQServer.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[action]")]
     [ApiController]
+    [Authorize(AuthenticationSchemes = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)]
     public class ConsumerController : ControllerBase
     {
         private readonly ConsumerService _consumerService;
@@ -14,7 +16,7 @@ namespace RabbitMQServer.Controllers
             _consumerService = consumerService;
         }
 
-        [HttpPost("Receive")]
+        [HttpPost]
         public IActionResult ReceiveMessage()
         {
             _consumerService.ReceiveMessage();

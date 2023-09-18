@@ -2,6 +2,7 @@
 using StackExchange.Redis;
 using RabbitMQServer.Models;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json.Linq;
 
 namespace RabbitMQServer.Services
 {
@@ -10,24 +11,26 @@ namespace RabbitMQServer.Services
         // private readonly static string ConfFilePath = "./Data/local.json";
         private readonly string LogFilePath = "./Data/auth_log.txt";
         private readonly string UserDataFilePath = "./Data/user_data.txt";
+        private readonly JwtSettings jwtSettings;
         private readonly Logger logger;
 
-        public AuthService()
+        public AuthService(JwtSettings jwtSettings)
         {
+            this.jwtSettings = jwtSettings;
             logger = new Logger(LogFilePath);
-            logger.ClearFileContent();
+            //logger.ClearFileContent();
         }
 
-        public bool AuthUser(User user)
+        public bool AuthUser(Users user)
         {
             try
             {
                 // user data validation
-                if (user.Email != null && !IsEmailValid(user.Email))
+                if (!IsUserDataValid(user))
                 {
-                    logger.LogInfo($"Invalid Email format: {user.Email}");
+                    logger.LogInfo($"Invalid data format: {user}");
                     return false;
-                } // + username and password validation
+                } 
 
                 // make user password hash
                 user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
@@ -50,56 +53,66 @@ namespace RabbitMQServer.Services
             }
         }
         
-        public bool LoginUser(UserDto request)
+        public UserTokens? LoginUser(UserDto request)
         {
             try
             {
-                request.Email = request.Email.ToLower();
                 string[] jsonLines = File.ReadAllLines(UserDataFilePath);
 
                 // compare users db data with user request data
+                var storedUser = new Users();
                 foreach (string line in jsonLines)
                 {
-                    User storedUser = JsonConvert.DeserializeObject<User>(line);
+                    storedUser = JsonConvert.DeserializeObject<Users>(line);
 
-                    if (storedUser != null && storedUser.Email == request.Email)
+                    if (storedUser != null && storedUser.UserName == request.UserName)
                     {
-                        if (BCrypt.Net.BCrypt.Verify(request.Password, storedUser.Password))
-                        {
-                            logger.LogInfo($"Login: {JsonConvert.SerializeObject(request)}");
-                            return true;
-                        }
-                        else
-                        {
-                            throw new Exception("Wrong password");
-                        }
+                        break;
                     }
+                    storedUser = null;
                 }
 
-                throw new Exception("User not find");
+                // if the user was found
+                var Token = new UserTokens();
+                if (storedUser != null)
+                {
+                    if (BCrypt.Net.BCrypt.Verify(request.Password, storedUser.Password))
+                    {
+                        // create token
+                        Token = JwtHelpers.JwtHelpers.GenTokenkey(new UserTokens()
+                        {
+                            Email = storedUser.Email,
+                            UserName = storedUser.UserName,
+                        }, jwtSettings);
+
+                        // Saving user data to Redis
+                        RedisConnection(storedUser.Email, Token.Token);
+
+                        logger.LogInfo($"Login: {JsonConvert.SerializeObject(Token)}");
+                    }
+                    else
+                    {
+                        throw new Exception("Wrong password");
+                    }
+                }
+                else
+                {
+                    throw new Exception("User not find");
+                }
+
+                return Token;
             }
             catch (Exception ex)
             {
                 logger.LogError($"Login error: {ex.Message}");
-                return false;
+                return null;
             }
         }
 
-        public bool CreateToken(UserDto user)
-        {
-            // Generate token for the user's password
-            string token = Token.GenerateJWTToken(user);
-
-            // Saving user data to Redis
-            RedisConnection(user.Email, token);
-
-            return true;
-        }
-
-        private static bool IsEmailValid(string email)
+        private static bool IsUserDataValid(Users user)// + username and password validation
         {
             string emailPattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
-            return Regex.IsMatch(email, emailPattern);
+            return Regex.IsMatch(user.Email, emailPattern);
         }    
 
         private static void RedisConnection(string email, string key)

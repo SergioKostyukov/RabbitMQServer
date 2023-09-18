@@ -4,6 +4,7 @@ obj/
 Properties/
 appsettings*.json
 RabbitMQServer.sln
+RabbitMQServer.csproj.user
 
 Data/*
 !Data/prod.json
