@@ -4,7 +4,7 @@ using RabbitMQServer.Services;
 
 namespace RabbitMQServer.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[action]")]
     [ApiController]
     [Authorize(AuthenticationSchemes = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)]
     public class ProducerController : ControllerBase
@@ -16,7 +16,7 @@ namespace RabbitMQServer.Controllers
             _producerService = producerService;
         }
 
-        [HttpPost("Send")]
+        [HttpGet]
         public IActionResult SendMessage()
         {
             _producerService.SendMessage();

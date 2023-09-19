@@ -6,17 +6,16 @@ namespace RabbitMQServer.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class AuthController : ControllerBase
+    public class AccountController : ControllerBase
     {
-        private readonly AuthService _authService;
+        private readonly AccountService _authService;
         
-
-        public AuthController(AuthService authService)
+        public AccountController(AccountService authService)
         {
             _authService = authService;
         }
 
-        [HttpPost("Authorization")]
+        [HttpPost]
         public IActionResult Authorization(Users user)
         {
             if (_authService.AuthUser(user))
@@ -29,13 +28,14 @@ namespace RabbitMQServer.Controllers
             }
         }
 
-        [HttpPost("Login")]
+        [HttpPost]
         public IActionResult Login(UserDto user)
         {
             var userToken = _authService.LoginUser(user);
+
             if (userToken != null)
             {
-                return Ok($"User login successfull:\n{userToken}");
+                return Ok(userToken);
             }
             else
             {
@@ -43,16 +43,16 @@ namespace RabbitMQServer.Controllers
             }
         }
 
-        [HttpPost("Delete")]
+        [HttpPost]
         public IActionResult Delete(UserDto user)
         {
-            if (true)
+            if (_authService.DeleteUser(user))
             {
-                return Ok("User login successfull");
+                return Ok("User delete successfull");
             }
             else
             {
-                return BadRequest("User login failed");
+                return BadRequest("User delete failed");
             }
         }
     }

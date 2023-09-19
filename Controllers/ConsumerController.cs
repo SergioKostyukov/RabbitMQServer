@@ -16,7 +16,7 @@ namespace RabbitMQServer.Controllers
             _consumerService = consumerService;
         }
 
-        [HttpPost]
+        [HttpGet]
         public IActionResult ReceiveMessage()
         {
             _consumerService.ReceiveMessage();

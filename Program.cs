@@ -8,7 +8,7 @@ builder.Services.AddJWTTokenServices(builder.Configuration);
 builder.Services.AddControllers();
 builder.Services.AddScoped<ProducerService>();
 builder.Services.AddScoped<ConsumerService>();
-builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<AccountService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options => {
@@ -29,7 +29,7 @@ builder.Services.AddSwaggerGen(options => {
                             Id = "Bearer"
                     }
                 },
-                new string[] {}
+                Array.Empty<string>()
         }
     });
 });

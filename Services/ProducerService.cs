@@ -41,12 +41,7 @@ namespace RabbitMQServer.Services
                 channel.QueueBind(queueName, exchangeName, routingKey);
 
                 // Creating a message stack
-                var messages = new[]
-                {
-                    new Message { Content = "Message 1" },
-                    new Message { Content = "Message 2" },
-                    new Message { Content = "Message 3" }
-                };
+                var messages = CreateMessageStack();
 
                 foreach (var message in messages)
                 {
@@ -87,6 +82,16 @@ namespace RabbitMQServer.Services
             };
 
             return factory;
+        }
+
+        private static Message[] CreateMessageStack()
+        {
+            return new[]
+                {
+                    new Message { Content = "Message 1" },
+                    new Message { Content = "Message 2" },
+                    new Message { Content = "Message 3" }
+                };
         }
     }
 }
